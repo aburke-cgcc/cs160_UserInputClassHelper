@@ -1,17 +1,17 @@
 package edu.cgcc.scanner;
 import java.util.Scanner;
 import java.lang.reflect.*;
+import java.util.Arrays;
 
 public class OrderEntry {
-	private static Scanner scanner;
+	private static Scanner scanner = new Scanner(System.in);
 	
 	/**
-	 * Request information for a give object
+	 * Request information for a given object
 	 * @param o
 	 * @return
 	 */
-	public static boolean newOrder(Object o) {
-		scanner = new Scanner(System.in);
+	public static boolean newObject(Object o) {
 		boolean created = false;
 		Field[] fields = o.getClass().getDeclaredFields();
 		System.out.println("Creating new Order:");
@@ -19,7 +19,6 @@ public class OrderEntry {
 			System.out.println("Enter value for " + field.getName() + ": ");
 			String entry = scanner.nextLine();
 			try {				
-				System.out.println(field.getType().toString());
 				if(field.getType().toString().toLowerCase().contains("string"))
 					field.set(o, entry.trim());
 				
@@ -56,8 +55,53 @@ public class OrderEntry {
 			}
 		}
 		
-		scanner.close();
 		return created;
+	}
+	
+	/**
+	 * Print object information
+	 * @param o
+	 * @return
+	 */
+	public static boolean printObject(Object o) {
+		boolean created = false;
+		Field[] fields = o.getClass().getDeclaredFields();
+		for(Field field : fields) {
+			try {				
+				System.out.print(field.getName() + ": ");
+				System.out.println(field.get(o));
+			}
+			catch(Exception e) {
+				System.err.println(e.getMessage());
+			}
+		}
+		
+		return created;
+	}
+	
+	/**
+	 * Expand array as new objects are added
+	 * @param objects
+	 * @param o
+	 * @return
+	 */
+	public static Object[] addObjectToArray(Object[] objects, Object o) {
+		if(Arrays.asList(objects).contains(null)) {
+			for(int i = 0; i < objects.length; i++) {
+				if(objects[i] == null) {
+					objects[i] = o;
+					return objects;
+				}
+			}
+		}
+		else {
+			Object[] temp = new Object[objects.length + 2];
+			temp = objects.clone();
+			temp[temp.length - 2] = o;
+			return temp;
+		}
+		
+		return null;
 	}
 	
 	/**
@@ -66,8 +110,7 @@ public class OrderEntry {
 	 * or -1 if the option wasn't understood.
 	 */
 	public static int selectOption() {
-		scanner = new Scanner(System.in);
-		System.out.println("Available Options:\n1 = Enter New Order\n2 = Find Existing Order");
+		System.out.println("Available Options:\n1 = Enter New Order\n2 = Print Existing Orders\n-1 = End Program");
 		System.out.println("Please select an option(1 or 2):");
 		while(scanner.hasNextLine()) {
 			try {
@@ -77,6 +120,8 @@ public class OrderEntry {
 						return 1;
 					case 2:
 						return 2;
+					case -1:
+						return -1;
 					default:
 						throw new Exception("The value was not between 1 or 2.");
 				}
@@ -88,7 +133,6 @@ public class OrderEntry {
 				System.err.println(e.getMessage());
 			}
 		}
-		scanner.close();
 		return -1;
 	}
 }
